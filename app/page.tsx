@@ -18,7 +18,7 @@ export default function Home() {
     })
   }, [])
 
-  if (!question) return (<div>Seems like you came here by error :(</div>)
+  if (!question) return (<div>Realiza tu pregunta y obtendrás una respuesta</div>)
 
   if (!response) return <Loading />
 
