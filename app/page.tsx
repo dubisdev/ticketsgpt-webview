@@ -33,40 +33,9 @@ const askGpt = async (prompt: string, apiKey: string) => {
 
     if (!response.ok) return "No se pudo conectar con el servidor de OpenAI"
 
-    const stream = response.body?.getReader()
+    const res = await response.json()
+    return res?.choices?.[0]?.message?.content || "No se pudo obtener respuesta"
 
-    if (!stream) return "No se pudo conectar con el servidor de OpenAI"
-
-    const decoder = new TextDecoder('utf-8')
-
-    while (true) {
-      const { done, value } = await stream.read()
-
-      if (done) break
-
-      const text = decoder.decode(value)
-      const data = text.split('\n').filter(Boolean).map((line) => line.trim().replace('data: ', '').trim())
-
-      let responseText = ""
-      for (const line of data) {
-        if (line === '[DONE]') {
-          break
-        }
-
-        let content = ''
-        try {
-          const json = JSON.parse(line)
-          content = json?.choices[0]?.delta?.content ?? ''
-        } catch (e) {
-          console.error('No se pudo parsear la línea', line)
-          console.error(e)
-        }
-
-        responseText += content
-      }
-
-      return responseText
-    }
   } catch (e: any) {
     if (e?.name === 'AbortError') return;
   }
@@ -91,7 +60,7 @@ const queryOpenAIServer = async (prompt: string, { model, apiKey }: OpenAISettin
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`
     },
-    body: JSON.stringify({ model, stream: true, messages: [...INITIAL_GPT_MESSAGES, { role: 'user', content: prompt }] })
+    body: JSON.stringify({ model, stream: false, messages: [...INITIAL_GPT_MESSAGES, { role: 'user', content: prompt }] })
   })
 }
 
