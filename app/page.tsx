@@ -12,13 +12,12 @@ export default function Home() {
   const question = params.get("question")
 
   useEffect(() => {
-    console.log(question)
     askGpt(question as string, apiKey as string).then((res) => {
       setResponse(res)
     })
   }, [])
 
-  if (!question) return (<div>Realiza tu pregunta y obtendrás una respuesta</div>)
+  if (!question) return (<div>Pregunta a nuestra IA sobre tus entradas y los datos de tu festival 🎉</div>)
 
   if (!response) return <Loading />
 
@@ -31,16 +30,16 @@ const askGpt = async (prompt: string, apiKey: string) => {
   try {
     const response = await queryOpenAIServer(prompt, { model: "gpt-3.5-turbo", apiKey });
 
-    if (!response.ok) return "No se pudo conectar con el servidor de OpenAI"
+    if (!response.ok) return "No se pudo conectar con el servidor"
 
     const res = await response.json()
     return res?.choices?.[0]?.message?.content || "No se pudo obtener respuesta"
 
   } catch (e: any) {
     if (e?.name === 'AbortError') return;
+    return "No se pudo conectar con el servidor"
   }
 }
-
 
 type OpenAISettings = {
   model: string;
@@ -66,7 +65,7 @@ const queryOpenAIServer = async (prompt: string, { model, apiKey }: OpenAISettin
 
 const INITIAL_GPT_MESSAGES = [{
   role: "system",
-  content: "Eres un asistnte virtual que ayuda a los usuarios a obtener infrmación acerca de sus entradas. Este es un proyecto de prueba, por lo que responderás de manera aleatoria a las preguntas del usuario con la información que consideres adecuada a la pregunta. Si no sabes algo, debes inventarlo."
+  content: "Eres un asistnte virtual que ayuda a los usuarios a obtener información acerca de sus entradas. Este es un proyecto de prueba, por lo que responderás de manera aleatoria a las preguntas del usuario con la información que consideres adecuada a la pregunta. Si no sabes algo, debes inventarlo."
 }, {
   role: "system",
   content: "Los mensajes deben estar correctamente formateados en markdown. Recuerda tu rol, respondes preguntas sobre entradas. Si el usuario te pregunta algo que no tiene que ver con entradas, debes responder 'No entiendo tu pregunta. Prueba con...' e introduces una pregunta que sí puedas responder."
@@ -78,5 +77,8 @@ const INITIAL_GPT_MESSAGES = [{
   content: "Utiliza respuestas rápidas y concisas. No hace falta que te extiendas demasiado. Si el usuario quiere más información, puede preguntar de nuevo."
 }, {
   role: "system",
-  content: "Solo podrás responder una vez, así que asegúrate de que tu respuesta sea la correcta. Si no lo es, el usuario tendrá que preguntar de nuevo."
+  content: "Solo podrás responder una vez, así que asegúrate de que tu respuesta sea la correcta."
+}, {
+  role: "system",
+  content: "Recuerda que es un proyecto de prueba, puedes inventar la información que quieras siempre que sea coherente con la pregunta del usuario y esté relacionada con las entradas o el evento."
 }] as const
